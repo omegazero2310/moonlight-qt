@@ -10,6 +10,7 @@
 #include "video/decoder.h"
 #include "audio/renderers/renderer.h"
 #include "video/overlaymanager.h"
+#include "bw_reporter.h"
 
 class SupportedVideoFormatList : public QList<int>
 {
@@ -284,4 +285,5 @@ private:
     static CONNECTION_LISTENER_CALLBACKS k_ConnCallbacks;
     static Session* s_ActiveSession;
     static QSemaphore s_ActiveSessionSemaphore;
+    BwReporter* m_bwReporter = nullptr;   // BWFB ADD
 };

@@ -177,6 +177,7 @@ SOURCES += \
     settings/compatfetcher.cpp \
     settings/mappingfetcher.cpp \
     settings/streamingpreferences.cpp \
+    streaming/bw_reporter.cpp \
     streaming/input/abstouch.cpp \
     streaming/input/gamepad.cpp \
     streaming/input/input.cpp \
@@ -205,6 +206,7 @@ HEADERS += \
     cli/pair.h \
     settings/compatfetcher.h \
     settings/mappingfetcher.h \
+    streaming/bw_reporter.h \
     utils.h \
     backend/computerseeker.h \
     backend/identitymanager.h \

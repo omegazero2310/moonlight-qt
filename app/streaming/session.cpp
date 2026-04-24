@@ -2,6 +2,7 @@
 #include "settings/streamingpreferences.h"
 #include "streaming/streamutils.h"
 #include "backend/richpresencemanager.h"
+#include "bw_reporter.h"  // BWFB ADD
 
 #include <Limelight.h>
 #include "SDL_compat.h"
@@ -357,6 +358,14 @@ int Session::drSetup(int videoFormat, int width, int height, int frameRate, void
 
 int Session::drSubmitDecodeUnit(PDECODE_UNIT du)
 {
+    // BWFB ADD — feed per-frame RTP metrics to BwReporter
+    if (s_ActiveSession->m_bwReporter) {
+        uint16_t seq     = static_cast<uint16_t>(du->frameNumber);
+        uint32_t send_ts = du->rtpTimestamp;
+        uint32_t recv_ts = static_cast<uint32_t>(du->receiveTimeUs & 0xFFFFFFFFULL);
+        s_ActiveSession->m_bwReporter->onPacketReceived(seq, send_ts, recv_ts);
+    }
+
     // Use a lock since we'll be yanking this decoder out
     // from underneath the session when we initiate destruction.
     // We need to destroy the decoder on the main thread to satisfy
@@ -1689,6 +1698,12 @@ bool Session::startConnectionAsync()
         return false;
     }
 
+    // BWFB ADD — start bandwidth reporter now that the connection is established
+    if (m_Preferences->adaptiveBitrate) {
+        m_bwReporter = new BwReporter(m_Computer->activeAddress.address(), 47999, this);
+        m_bwReporter->start();
+    }
+
     emit connectionStarted();
     return true;
 }
@@ -2286,6 +2301,13 @@ void Session::exec()
 DispatchDeferredCleanup:
     // Switch back to synchronous logging mode
     StreamUtils::exitAsyncLoggingMode();
+
+    // BWFB ADD — stop and destroy bandwidth reporter
+    if (m_bwReporter) {
+        m_bwReporter->stop();
+        delete m_bwReporter;
+        m_bwReporter = nullptr;
+    }
 
     // Uncapture the mouse and hide the window immediately,
     // so we can return to the Qt GUI ASAP.

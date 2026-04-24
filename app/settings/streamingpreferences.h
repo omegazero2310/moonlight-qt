@@ -187,6 +187,9 @@ public:
     UIDisplayMode uiDisplayMode;
     Language language;
     CaptureSysKeysMode captureSysKeysMode;
+    // BWFB ADD — adaptive bandwidth control
+    bool adaptiveBitrate = true;           // default on; user can disable in settings
+    int  adaptiveBitrateMinKbps = 1000;    // hard floor to prevent unusable quality
 
 signals:
     void displayModeChanged();
