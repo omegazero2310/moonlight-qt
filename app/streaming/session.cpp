@@ -1698,9 +1698,16 @@ bool Session::startConnectionAsync()
         return false;
     }
 
-    // BWFB ADD — start bandwidth reporter now that the connection is established
+    // BWFB ADD — start bandwidth reporter now that the connection is established.
+    // LiGetPortFromPortFlagIndex() must be called between LiStartConnection() and
+    // LiStopConnection(), so this is the correct place to resolve the RTCP port.
     if (m_Preferences->adaptiveBitrate) {
-        m_bwReporter = new BwReporter(m_Computer->activeAddress.address(), 47999, this);
+        quint16 rtcpPort = LiGetPortFromPortFlagIndex(ML_PORT_INDEX_UDP_47999);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "BWFB: starting BwReporter → %s:%u",
+                    m_Computer->activeAddress.address().toUtf8().constData(),
+                    (unsigned)rtcpPort);
+        m_bwReporter = new BwReporter(m_Computer->activeAddress.address(), rtcpPort, this);
         m_bwReporter->start();
     }
 
